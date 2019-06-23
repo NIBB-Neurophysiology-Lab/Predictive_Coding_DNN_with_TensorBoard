@@ -1,3 +1,5 @@
+# TB8 version
+
 import argparse
 import os
 from datetime import datetime
@@ -42,6 +44,8 @@ parser.add_argument('--save', default=10000, type=int,
                     help='Period of save model and state (frames)')
 parser.add_argument('--period', default=1000000, type=int,
                     help='Period of training (frames)')
+parser.add_argument('--xyz', default=0, type=int,
+                    help='Save xyz_images, --xyz 1')
 parser.add_argument('--test', dest='test', action='store_true')
 parser.set_defaults(test=False)
 args = parser.parse_args()
@@ -89,10 +93,11 @@ if args.resume:
 
 if not os.path.exists('models'):
     os.makedirs('models')
-if not os.path.exists('images'):
-    os.makedirs('images')
 if not os.path.exists('result'):
     os.makedirs('result')
+if args.xyz == 1:
+	if not os.path.exists('xyz_images'):
+		os.makedirs('xyz_images')
 
 def load_list(path, root):
     tuples = []
@@ -200,9 +205,12 @@ else:
                 loss = 0
                 optimizer.update()
                 if args.gpu >= 0:model.to_cpu()
-                write_image(x_batch[0].copy(), 'images/' + str(count) + '_' + str(seq) + '_' + str(i) + 'x.png')
-                write_image(model.y.data[0].copy(), 'images/' + str(count) + '_' + str(seq) + '_' + str(i) + 'y.png')
-                write_image(y_batch[0].copy(), 'images/' + str(count) + '_' + str(seq) + '_' + str(i) + 'z.png')
+                
+                if args.xyz == 1:
+					write_image(x_batch[0].copy(), 'xyz_images/' + str(count) + '_' + str(seq) + '_' + str(i) + 'x.jpg')
+					write_image(model.y.data[0].copy(), 'xyz_images/' + str(count) + '_' + str(seq) + '_' + str(i) + 'y.jpg')
+					write_image(y_batch[0].copy(), 'xyz_images/' + str(count) + '_' + str(seq) + '_' + str(i) + 'z.jpg')                
+                
                 print('loss:' + str(float(model.loss.data)))
                 logf.write(str(i) + ', ' + str(float(model.loss.data)) + '\n')
                 logf.flush()

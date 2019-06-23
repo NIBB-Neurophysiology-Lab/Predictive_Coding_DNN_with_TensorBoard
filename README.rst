@@ -63,6 +63,18 @@ Requirements
 
 
 ================================
+Reserved folder names @ root
+================================
+PredNet
+data
+models
+result
+xyz_images
+runs
+
+
+
+================================
 Preparing data
 ================================
 Put the target movie file (mp4) in "data" folder.
@@ -110,7 +122,7 @@ The learning models are saved in "models folder"
 ================================
 Prediction
 ================================
-Next, generate predicted frames with the following command.
+Next, generate predicted frames with the following command (--test option).
 
 $ python PredNet/main.py -i data/test_list.txt --test --initmodel models/YOUR_MODEL -l NUMBER_OF_INPUT_IMAGES --ext NUMBER_OF_PREDICTED_IMAGES
 
@@ -136,6 +148,7 @@ parser.add_argument('--ext', '-e', default=10, type=int, help='Extended predicti
 parser.add_argument('--bprop', default=20, type=int, help='Back propagation length (frames)')
 parser.add_argument('--save', default=10000, type=int, help='Period of save model and state (frames)')
 parser.add_argument('--period', default=1000000, type=int, help='Period of training (frames)')
+parser.add_argument('--xyz', default=0, type=int, help='Save xyz_images, --xyz 1')
 
 
 
@@ -168,10 +181,14 @@ and access "http://localhost:6006" in your browser.
 ================================
 Reference
 ================================
-"https://github.com/neka-nat/" [Powered by Tanaka]
-
-"https://coxlab.github.io/prednet/" [Original PredNet]
+"https://github.com/neka-nat/" [Powered by Kenta Tanaka]
+"https://coxlab.github.io/prednet/" [Original Keras PredNet]
 "https://github.com/quadjr/PredNet" [Implemented by chainer]
+
+"https://doi.org/10.3389/fpsyg.2018.00345" [Reference Paper]
+Watanabe E, Kitaoka A, Sakamoto K, Yasugi M and Tanaka K (2018)
+Illusory Motion Reproduced by Deep Neural Networks Trained for Prediction.
+Front. Psychol. 9:345. doi: 10.3389/fpsyg.2018.00345
 
 
 
