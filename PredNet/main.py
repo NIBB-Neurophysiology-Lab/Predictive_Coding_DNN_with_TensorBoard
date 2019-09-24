@@ -1,4 +1,4 @@
-# TB8 version
+#tensorboard version 10 (bugfix: period option and prediction loss)
 
 import argparse
 import os
@@ -98,7 +98,7 @@ if not os.path.exists('result'):
 if args.xyz == 1:
 	if not os.path.exists('xyz_images'):
 		os.makedirs('xyz_images')
-
+		
 def load_list(path, root):
     tuples = []
     for line in open(path):
@@ -138,9 +138,10 @@ if args.test == True:
         batchSize = 1
         x_batch = np.ndarray((batchSize, args.channels[0], args.size[1], args.size[0]), dtype=np.float32)
         y_batch = np.ndarray((batchSize, args.channels[0], args.size[1], args.size[0]), dtype=np.float32)
-        for i in range(0, len(imagelist)):
+        for i in range(0, len(imagelist) - 1):
             print('frameNo:' + str(i))
             x_batch[0] = read_image(imagelist[i])
+            y_batch[0] = read_image(imagelist[i + 1])
             loss += model(chainer.Variable(xp.asarray(x_batch)),
                           chainer.Variable(xp.asarray(y_batch)))
             loss.unchain_backward()
@@ -207,9 +208,9 @@ else:
                 if args.gpu >= 0:model.to_cpu()
                 
                 if args.xyz == 1:
-					write_image(x_batch[0].copy(), 'xyz_images/' + str(count) + '_' + str(seq) + '_' + str(i) + 'x.jpg')
-					write_image(model.y.data[0].copy(), 'xyz_images/' + str(count) + '_' + str(seq) + '_' + str(i) + 'y.jpg')
-					write_image(y_batch[0].copy(), 'xyz_images/' + str(count) + '_' + str(seq) + '_' + str(i) + 'z.jpg')                
+					write_image(x_batch[0].copy(), 'xyz_images/' + str(count) + '_' + str(seq) + '_' + str(i) + 'x.png')
+					write_image(model.y.data[0].copy(), 'xyz_images/' + str(count) + '_' + str(seq) + '_' + str(i) + 'y.png')
+					write_image(y_batch[0].copy(), 'xyz_images/' + str(count) + '_' + str(seq) + '_' + str(i) + 'z.png')
                 
                 print('loss:' + str(float(model.loss.data)))
                 logf.write(str(i) + ', ' + str(float(model.loss.data)) + '\n')
@@ -225,6 +226,8 @@ else:
                     writer.add_histogram(name, chainer.cuda.to_cpu(param.data), count)
                 writer.add_scalar('loss', float(model.loss.data), count)
             x_batch[0] = y_batch[0]
+            if count > args.period:
+                break
             count += 1
 
         seq = (seq + 1)%len(sequencelist)

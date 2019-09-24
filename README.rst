@@ -2,7 +2,7 @@
 
 
 ================================
-PredNet in chainer with tensorboard-chainer
+PredNet in chainer
 ================================
 Kenta Tanaka & Eiji Watanabe, 2019
 
@@ -63,18 +63,6 @@ Requirements
 
 
 ================================
-Reserved folder names @ root
-================================
-PredNet
-data
-models
-result
-xyz_images
-runs
-
-
-
-================================
 Preparing data
 ================================
 Put the target movie file (mp4) in "data" folder.
@@ -122,7 +110,7 @@ The learning models are saved in "models folder"
 ================================
 Prediction
 ================================
-Next, generate predicted frames with the following command (--test option).
+Next, generate predicted frames with the following command.
 
 $ python PredNet/main.py -i data/test_list.txt --test --initmodel models/YOUR_MODEL -l NUMBER_OF_INPUT_IMAGES --ext NUMBER_OF_PREDICTED_IMAGES
 
@@ -134,7 +122,6 @@ Furthermore, for each length of the input image, images (test_#y_1.jpg, test_#y_
 ================================
 Options
 ================================
-parser = argparse.ArgumentParser(description='PredNet')
 parser.add_argument('--images', '-i', default='', help='Path to image list file')
 parser.add_argument('--sequences', '-seq', default='', help='Path to sequence list file')
 parser.add_argument('--gpu', '-g', default=-1, type=int, help='GPU ID (negative value indicates CPU)')
@@ -144,15 +131,11 @@ parser.add_argument('--resume', default='', help='Resume the optimization from s
 parser.add_argument('--size', '-s', default='160,120', help='Size of target images. width,height (pixels)')
 parser.add_argument('--channels', '-c', default='3,48,96,192', help='Number of channels on each layers')
 parser.add_argument('--offset', '-o', default='0,0', help='Center offset of clipping input image (pixels)')
-parser.add_argument('--input_len', '-l', default=50, type=int,  help='Input frame length fo extended prediction on test (frames)')
+parser.add_argument('--input_len', '-l', default=50, type=int, help='Input frame length fo extended prediction on test (frames)')
 parser.add_argument('--ext', '-e', default=10, type=int, help='Extended prediction on test (frames)')
 parser.add_argument('--bprop', default=20, type=int, help='Back propagation length (frames)')
 parser.add_argument('--save', default=10000, type=int, help='Period of save model and state (frames)')
 parser.add_argument('--period', default=1000000, type=int, help='Period of training (frames)')
-parser.add_argument('--xyz', default=0, type=int, help='Save xyz_images, --xyz 1')
-parser.add_argument('--test', dest='test', action='store_true')
-parser.set_defaults(test=False)
-args = parser.parse_args()
 
 
 
@@ -185,14 +168,10 @@ and access "http://localhost:6006" in your browser.
 ================================
 Reference
 ================================
-"https://github.com/neka-nat/" [Powered by Kenta Tanaka]
-"https://coxlab.github.io/prednet/" [Original Keras PredNet]
-"https://github.com/quadjr/PredNet" [Implemented by chainer]
+"https://github.com/neka-nat/" [Powered by Tanaka]
 
-"https://doi.org/10.3389/fpsyg.2018.00345" [Reference Paper]
-Watanabe E, Kitaoka A, Sakamoto K, Yasugi M and Tanaka K (2018)
-Illusory Motion Reproduced by Deep Neural Networks Trained for Prediction.
-Front. Psychol. 9:345. doi: 10.3389/fpsyg.2018.00345
+"https://coxlab.github.io/prednet/" [Original PredNet]
+"https://github.com/quadjr/PredNet" [Implemented by chainer]
 
 
 
