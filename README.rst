@@ -4,7 +4,7 @@
 ================================
 PredNet in chainer
 ================================
-Kenta Tanaka & Eiji Watanabe, 2019
+Kenta Tanaka & Eiji Watanabe, 2020
 
 
 
@@ -26,10 +26,10 @@ sudo pip install tensorboard-chainer
 ================================
 Test environment
 ================================
-OS: Ubuntu 16.04
-Python: 2.7
+OS: Ubuntu 16.04.5LTS
+Python: 2.7.12
 GPU: Nvidia GTX1080ti
-chainer==5.30
+chainer==6.7.0
 
 
 
@@ -94,7 +94,7 @@ With -n option, you can copy n frames of the same frame.
 ================================
 Training
 ================================
-Next, execute the following command for training.
+Execute the following command for training.
 
 $ python PredNet/main.py -i data/train_list.txt
 
@@ -102,20 +102,22 @@ To use GPU, execute as follows.
 
 $ python PredNet/main.py -i data/train_list.txt -g 0
 
-The learning models are saved in "models folder"
- and the generated images are saved "image folder".
+The trained models will be saved in "models" folder.
 
 
 
 ================================
 Prediction
 ================================
-Next, generate predicted frames with the following command.
+Next, generate predicted frames using following command.
 
-$ python PredNet/main.py -i data/test_list.txt --test --initmodel models/YOUR_MODEL -l NUMBER_OF_INPUT_IMAGES --ext NUMBER_OF_PREDICTED_IMAGES
+$ python PredNet/main.py -i data/test_list.txt --test --initmodel models/YOUR_MODEL -l NUMBER_OF_INPUT_IMAGES --ext NUMBER_OF_PREDICTED_IMAGES -g 0
 
 Predicted images (test_#y_ 0.jpg) of all the images described in "test_list.txt" are generated in "result folder".
 Furthermore, for each length of the input image, images (test_#y_1.jpg, test_#y_2.jpg, ...) corresponding to the number of predicted frames are generated.
+
+[SAMPLE command]
+$ python PredNet/main.py -i data/test_list.txt --test --initmodel sample_models/FPSI_500K.model -l 20 --ext 3 -g 0
 
 
 
@@ -168,10 +170,9 @@ and access "http://localhost:6006" in your browser.
 ================================
 Reference
 ================================
-"https://github.com/neka-nat/" [Powered by Tanaka]
-
+"https://github.com/neka-nat/" [Tanaka's site]
 "https://coxlab.github.io/prednet/" [Original PredNet]
 "https://github.com/quadjr/PredNet" [Implemented by chainer]
-
+"https://doi.org/10.3389/fpsyg.2018.00345" [Illusion Paper]
 
 
