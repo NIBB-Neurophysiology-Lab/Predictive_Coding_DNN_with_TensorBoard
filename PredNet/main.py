@@ -1,3 +1,4 @@
+#tensorboard version 11 (bugfix: tensorboard-chainer, Ver0.5.3)
 #tensorboard version 10 (bugfix: period option and prediction loss)
 
 import argparse
@@ -12,8 +13,7 @@ import chainer.links as L
 from chainer import optimizers
 from chainer import serializers
 from chainer.functions.loss.mean_squared_error import mean_squared_error
-import chainer.computational_graph as c
-from tb_chainer import SummaryWriter, NodeName, utils
+from tb_chainer import SummaryWriter, NodeName, utils, graph
 import net
 
 parser = argparse.ArgumentParser(
@@ -163,7 +163,7 @@ if args.test == True:
                 loss += model(chainer.Variable(xp.asarray(x_batch)),
                               chainer.Variable(xp.asarray(y_batch)))
                 if j == args.ext - 1:
-                    g = c.build_computational_graph([model.y])
+                    g = graph.build_computational_graph([model.y])
                     node_name = NodeName(g.nodes)
                     for n in g.nodes:
                         if isinstance(n, chainer.variable.VariableNode) and \
