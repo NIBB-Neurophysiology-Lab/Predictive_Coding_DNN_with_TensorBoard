@@ -124,6 +124,9 @@ Furthermore, for each length of the input image, images (test_#y_1.jpg, test_#y_
 $ python PredNet/main.py -i test_data/test_list.txt --test --initmodel sample_models/fpsi_8v_500k.model -l 20 --ext 3 -g 0
 $ python PredNet/main.py -i test_data/test_list.txt --test --initmodel sample_models/fpsi_8v_500k.model -l 20 --ext 3 -g 0 --tensorboard
 
+a sample weight model:
+https://doi.org/10.6084/m9.figshare.11931222.v3
+
 
 
 ================================
