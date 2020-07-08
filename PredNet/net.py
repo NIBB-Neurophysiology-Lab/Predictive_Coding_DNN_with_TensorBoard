@@ -3,6 +3,7 @@ import chainer
 import chainer.functions as F
 import chainer.links as L
 from chainer import variable
+from chainer.functions.loss.mean_squared_error import mean_squared_error
 from tb_chainer import name_scope, within_name_scope
 
 class EltFilter(chainer.Link):
@@ -146,6 +147,7 @@ class PredNet(chainer.Chain):
                 self.add_link('ConvLSTM' + str(nth), ConvLSTM(self.sizes[nth][3], self.sizes[nth][2],
                                (self.sizes[nth][1] * 2, r_channels[nth + 1]), r_channels[nth]))
 
+        self.loss = []
         self.reset_state()
 
     def to_cpu(self):
@@ -166,6 +168,7 @@ class PredNet(chainer.Chain):
             getattr(self, 'ConvLSTM' + str(nth)).reset_state()
 
     def __call__(self, x):
+        self.loss = []
         for nth in range(self.layers):
             if getattr(self, 'P' + str(nth)) is None:
                 with chainer.using_config('enable_backprop', False):
@@ -174,6 +177,7 @@ class PredNet(chainer.Chain):
 
         tol = lambda l: [p for p in l.params()]
         E = [None] * self.layers
+        A = [None] * (self.layers - 1)
         for nth in range(self.layers):
             if nth == 0:
                 with name_scope('E_Layer' + str(nth), [getattr(self, 'P' + str(nth))], True):
@@ -182,9 +186,9 @@ class PredNet(chainer.Chain):
             else:
                 with name_scope('E_Layer' + str(nth),
                                 [getattr(self, 'P' + str(nth))] + tol(getattr(self, 'ConvA' + str(nth))), True):
-                    A = F.max_pooling_2d(F.relu(getattr(self, 'ConvA' + str(nth))(E[nth - 1])), 2, stride = 2)
-                    E[nth] = F.concat((F.relu(A - getattr(self, 'P' + str(nth))),
-                                        F.relu(getattr(self, 'P' + str(nth)) - A)))
+                    A[nth - 1] = F.max_pooling_2d(F.relu(getattr(self, 'ConvA' + str(nth))(E[nth - 1])), 2, stride = 2)
+                    E[nth] = F.concat((F.relu(A[nth - 1] - getattr(self, 'P' + str(nth))),
+                                        F.relu(getattr(self, 'P' + str(nth)) - A[nth - 1])))
 
         R = [None] * self.layers
         for nth in reversed(range(self.layers)):
@@ -200,6 +204,10 @@ class PredNet(chainer.Chain):
                     setattr(self, 'P' + str(nth), F.clipped_relu(getattr(self, 'ConvP' + str(nth))(R[nth]), 1.0))
                 else:
                     setattr(self, 'P' + str(nth), F.relu(getattr(self, 'ConvP' + str(nth))(R[nth])))
+
+        self.loss.append(mean_squared_error(self.P0, x))
+        for nth in range(1, self.layers):
+            self.loss.append(mean_squared_error(getattr(self, 'P' + str(nth)), A[nth - 1]))
 
         return self.P0
 

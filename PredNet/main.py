@@ -47,7 +47,8 @@ parser.add_argument('--period', default=1000000, type=int,
 parser.add_argument('--xyz', default=0, type=int,
                     help='Save xyz_images, --xyz 1')
 parser.add_argument('--test', dest='test', action='store_true')
-parser.set_defaults(test=False)
+parser.add_argument('--tensorboard', dest='tensorboard', action='store_true')
+parser.set_defaults(test=False, tensorboard=False)
 args = parser.parse_args()
 
 
@@ -128,9 +129,10 @@ if args.images:
 else:
     sequencelist = load_list(args.sequences, args.root)
 
-writer = SummaryWriter('runs/'+datetime.now().strftime('%B%d  %H:%M:%S'))
+if args.tensorboard:
+    writer = SummaryWriter('runs/'+datetime.now().strftime('%B%d  %H:%M:%S'))
 if args.test == True:
-    logf = open('loss_prediction.txt', 'w')
+    logf = open('prediction_loss.csv', 'w')
     for seq in range(len(sequencelist)):
         imagelist = load_list(sequencelist[seq], args.root)
         prednet.reset_state()
@@ -149,7 +151,7 @@ if args.test == True:
             if args.gpu >= 0:model.to_cpu()
             write_image(x_batch[0].copy(), 'result/test_' + str(i) + 'x.png')
             write_image(model.y.data[0].copy(), 'result/test_' + str(i) + 'y_0.png')
-            logf.write(str(i) + ', ' + str(float(model.loss.data)) + '\n')
+            logf.write(str(i) + ', ' + ', '.join([str(float(l.data)) for l in model.predictor.loss]) + '\n')
             logf.flush()
             if args.gpu >= 0:model.to_gpu()
 
@@ -162,7 +164,7 @@ if args.test == True:
                 print('extended frameNo:' + str(j + 1))
                 loss += model(chainer.Variable(xp.asarray(x_batch)),
                               chainer.Variable(xp.asarray(y_batch)))
-                if j == args.ext - 1:
+                if j == args.ext - 1 and args.tensorboard:
                     g = graph.build_computational_graph([model.y])
                     node_name = NodeName(g.nodes)
                     for n in g.nodes:
@@ -178,7 +180,7 @@ if args.test == True:
                 if args.gpu >= 0:model.to_gpu()
             prednet.reset_state()
 else:
-    logf = open('log.txt', 'w')
+    logf = open('loss.csv', 'w')
     count = 0
     seq = 0
     while count < args.period:
@@ -208,12 +210,12 @@ else:
                 if args.gpu >= 0:model.to_cpu()
                 
                 if args.xyz == 1:
-					write_image(x_batch[0].copy(), 'xyz_images/' + str(count) + '_' + str(seq) + '_' + str(i) + 'x.png')
-					write_image(model.y.data[0].copy(), 'xyz_images/' + str(count) + '_' + str(seq) + '_' + str(i) + 'y.png')
-					write_image(y_batch[0].copy(), 'xyz_images/' + str(count) + '_' + str(seq) + '_' + str(i) + 'z.png')
+                    write_image(x_batch[0].copy(), 'xyz_images/' + str(count) + '_' + str(seq) + '_' + str(i) + 'x.png')
+                    write_image(model.y.data[0].copy(), 'xyz_images/' + str(count) + '_' + str(seq) + '_' + str(i) + 'y.png')
+                    write_image(y_batch[0].copy(), 'xyz_images/' + str(count) + '_' + str(seq) + '_' + str(i) + 'z.png')
                 
-                print('loss:' + str(float(model.loss.data)))
-                logf.write(str(i) + ', ' + str(float(model.loss.data)) + '\n')
+                print('loss:' + ', '.join([str(float(l.data)) for l in model.predictor.loss]))
+                logf.write(str(i) + ', ' + ', '.join([str(float(l.data)) for l in model.predictor.loss]) + '\n')
                 logf.flush()
                 if args.gpu >= 0:model.to_gpu()
 
@@ -222,9 +224,10 @@ else:
                 serializers.save_npz('models/' + str(count) + '.model', model)
                 print('save the optimizer')
                 serializers.save_npz('models/' + str(count) + '.state', optimizer)
-                for name, param in model.predictor.namedparams():
-                    writer.add_histogram(name, chainer.cuda.to_cpu(param.data), count)
-                writer.add_scalar('loss', float(model.loss.data), count)
+                if args.tensorboard:
+                    for name, param in model.predictor.namedparams():
+                        writer.add_histogram(name, chainer.cuda.to_cpu(param.data), count)
+                    writer.add_scalar('loss', float(model.loss.data), count)
             x_batch[0] = y_batch[0]
             if count > args.period:
                 break
@@ -233,7 +236,8 @@ else:
         seq = (seq + 1)%len(sequencelist)
 
 # For logging graph structure
-model(chainer.Variable(xp.asarray(x_batch)),
-      chainer.Variable(xp.asarray(y_batch)))
-writer.add_graph(model.y)
-writer.close()
+if args.tensorboard:
+    model(chainer.Variable(xp.asarray(x_batch)),
+          chainer.Variable(xp.asarray(y_batch)))
+    writer.add_graph(model.y)
+    writer.close()
